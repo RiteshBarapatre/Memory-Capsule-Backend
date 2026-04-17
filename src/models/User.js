@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    /** Bcrypt hash for email/password (local) sign-in; omitted for Google-only users */
+    passwordHash: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
