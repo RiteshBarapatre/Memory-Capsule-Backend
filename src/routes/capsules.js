@@ -7,6 +7,7 @@ import {
   getCapsulesByUserId,
   unlockCapsule,
   deleteCapsule,
+  markCapsuleDestroyed,
 } from '../controllers/capsuleController.js'
 
 const router = express.Router()
@@ -16,6 +17,7 @@ router.get('/user/:userId', getCapsulesByUserId)
 router.get('/:id', getCapsuleById)
 router.post('/', requireAuth, createCapsule)
 router.patch('/:id/unlock', requireAuth, unlockCapsule)
+router.patch('/:id/destroy', requireAuth, markCapsuleDestroyed)
 router.delete('/:id', requireAuth, deleteCapsule)
 
 export default router
