@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDb from "./config/db.js";
+import ghostPostRoutes from "./routes/ghostPosts.js";
 import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
@@ -22,6 +23,9 @@ app.use("/api/auth", authRoutes);
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Memory Capsule backend running" });
 });
+
+// Ghost Posts Routes
+app.use("/api/ghost-posts", ghostPostRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
