@@ -1,0 +1,23 @@
+import express from "express";
+import {
+  register,
+  login,
+  googleAuth,
+  getMe,
+  updateProfile,
+  forgotPassword,
+  resetPassword,
+} from "../controllers/authController.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
+
+const router = express.Router();
+
+router.post("/register", register);
+router.post("/login", login);
+router.post("/google", googleAuth);
+router.get("/me", requireAuth, getMe);
+router.patch("/profile", requireAuth, updateProfile);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
+
+export default router;
