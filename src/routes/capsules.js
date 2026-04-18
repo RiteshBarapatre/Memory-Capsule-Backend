@@ -7,11 +7,13 @@ import {
   getCapsulesByUserId,
   unlockCapsule,
   deleteCapsule,
+  generateMessageAI,
 } from '../controllers/capsuleController.js'
 
 const router = express.Router()
 
 router.get('/', getAllCapsules)
+router.post('/generate-message', generateMessageAI)
 router.get('/user/:userId', getCapsulesByUserId)
 router.get('/:id', getCapsuleById)
 router.post('/', requireAuth, createCapsule)
