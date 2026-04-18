@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import connectDb from "./config/db.js";
 import ghostPostRoutes from "./routes/ghostPosts.js";
 import authRoutes from "./routes/authRoutes.js";
+import capsuleRoutes from "./routes/capsules.js";
+import uploadRoutes from "./routes/upload.js";
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ app.get("/", (req, res) => {
 
 // Ghost Posts Routes
 app.use("/api/ghost-posts", ghostPostRoutes);
+app.use("/api/capsules", capsuleRoutes);
+app.use("/api/upload", uploadRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
