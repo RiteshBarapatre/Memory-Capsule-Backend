@@ -61,6 +61,10 @@ const CapsuleSchema = new mongoose.Schema(
       enum: ['locked', 'unlocked', 'expired', 'destroyed'],
       default: 'locked',
     },
+    destroyedAt: {
+      type: Date,
+      default: null,
+    },
     viewCount: {
       type: Number,
       default: 0,
