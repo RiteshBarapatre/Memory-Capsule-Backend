@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -184,3 +186,86 @@ export const googleAuth = async (req, res) => {
     });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(404).json({ message: "There is no user with that email" });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+      
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 mins
+    
+    await user.save();
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    const message = `You requested a password reset. Please go to this link to reset your password:\n\n${resetUrl}`;
+    
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Password Reset Token",
+        message,
+      });
+      res.status(200).json({ message: "Email sent" });
+    } catch (error) {
+      console.error("sendEmail error:", error);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(500).json({ message: "Email could not be sent" });
+    }
+  } catch (error) {
+    console.error("forgotPassword error:", error);
+    res.status(500).json({ message: "Forgot password failed" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    
+    await user.save();
+
+    const token = signToken(user._id.toString());
+    res.status(200).json({ user: toPublicUser(user), token });
+  } catch (error) {
+    console.error("resetPassword error:", error);
+    res.status(500).json({ message: "Reset password failed" });
+  }
+};
+
